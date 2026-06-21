@@ -4,6 +4,7 @@ import numpy as np
 import joblib
 import urllib.request
 import os
+import ssl
 
 # 1. Page Configuration
 st.set_page_config(
@@ -17,18 +18,19 @@ st.title("🔮 Customer Churn Prediction App")
 st.markdown("This app predicts whether a customer is likely to churn (leave the business) based on their profile and usage patterns.")
 st.markdown("---")
 
-# 3. Artifacts Load Function with Auto-Download from Google Drive
+# 3. Artifacts Load Function with SSL Fix & Auto-Download
 @st.cache_resource
 def load_models():
     model_path = 'Best_Model.pkl'
     
-    # Agar 364MB wala asli model downloaded nahi hai, to direct Google Drive se uthayenge
     if not os.path.exists(model_path):
         with st.spinner("Downloading full-accuracy model from Google Drive (~364MB)... Please wait, this happens only once."):
-            # Aapke link se banaya hua exact direct download URL
             url = "https://drive.google.com/uc?export=download&id=1EnlOxm9as7A7Yt1jte5wFbGiC1Ug8-xi"
             
-            opener = urllib.request.build_opener()
+            # SSL Certificate Error (Error 60) ko bypass karne ke liye context create kiya
+            context = ssl._create_unverified_context()
+            
+            opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context))
             opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')]
             urllib.request.install_opener(opener)
             
