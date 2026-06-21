@@ -17,20 +17,19 @@ st.title("🔮 Customer Churn Prediction App")
 st.markdown("This app predicts whether a customer is likely to churn (leave the business) based on their profile and usage patterns.")
 st.markdown("---")
 
-# 3. Artifacts Load Function with Auto-Download from Kaggle
+# 3. Artifacts Load Function with Auto-Download from Google Drive
 @st.cache_resource
 def load_models():
     model_path = 'Best_Model.pkl'
     
-    
+    # Agar 364MB wala asli model downloaded nahi hai, to direct Google Drive se uthayenge
     if not os.path.exists(model_path):
-        with st.spinner("Downloading heavy model from Kaggle (~364MB)... Please wait, this happens only once."):
-            # Direct raw download URL for your specific Kaggle notebook output
-            url = "https://www.kaggle.com/code/anshrajsingh7/churn-prediction/output/download?file=Best_Model.pkl"
+        with st.spinner("Downloading full-accuracy model from Google Drive (~364MB)... Please wait, this happens only once."):
+            # Aapke link se banaya hua exact direct download URL
+            url = "https://drive.google.com/uc?export=download&id=1EnlOxm9as7A7Yt1jte5wFbGiC1Ug8-xi"
             
-            # User-Agent header add kiya taaki download block na ho
             opener = urllib.request.build_opener()
-            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')]
             urllib.request.install_opener(opener)
             
             urllib.request.urlretrieve(url, model_path)
