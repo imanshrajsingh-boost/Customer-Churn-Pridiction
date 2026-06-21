@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import urllib.request
+import os
 
-# 1. Page Configuration (App का Title और Icon)
+# 1. Page Configuration
 st.set_page_config(
     page_title="Customer Churn Predictor",
     page_icon="🔮",
@@ -15,20 +17,22 @@ st.title("🔮 Customer Churn Prediction App")
 st.markdown("This app predicts whether a customer is likely to churn (leave the business) based on their profile and usage patterns.")
 st.markdown("---")
 
-# 3. Artifacts Load Function (Caching  for fast app )
+# 3. Artifacts Load Function with Auto-Download from Kaggle
 @st.cache_resource
 def load_models():
-    import urllib.request
-    import os
-    
-    
     model_path = 'Best_Model.pkl'
+    
+    
     if not os.path.exists(model_path):
-        with st.spinner("Downloading heavy model from Kaggle (364MB)... Please wait, this happens only once."):
-            # Kaggle notebook  direct output download link
-            url = "https://www.kaggle.com/api/v1/datasets/download/anshrajsingh7/churn-prediction/Best_Model.pkl"
-            # Alternately direct web URL:
+        with st.spinner("Downloading heavy model from Kaggle (~364MB)... Please wait, this happens only once."):
+            # Direct raw download URL for your specific Kaggle notebook output
             url = "https://www.kaggle.com/code/anshrajsingh7/churn-prediction/output/download?file=Best_Model.pkl"
+            
+            # User-Agent header add kiya taaki download block na ho
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            
             urllib.request.urlretrieve(url, model_path)
 
     model = joblib.load(model_path)
@@ -40,7 +44,7 @@ def load_models():
 try:
     model, scaler, ohe, oe = load_models()
 except Exception as e:
-    st.error(f"Error loading models. Please ensure 'Best_Model.pkl', 'Scaler.pkl', 'One_Hot_Encoder.pkl', and 'Ordinal_Encoder.pkl' are in the same directory.")
+    st.error(f"Error loading models: {e}. Please ensure 'Scaler.pkl', 'One_Hot_Encoder.pkl', and 'Ordinal_Encoder.pkl' are in your GitHub repo.")
     st.stop()
 
 # 4. SIDEBAR - User Input Form
@@ -68,7 +72,6 @@ with st.sidebar.form(key='customer_form'):
 
 # 5. MAIN PAGE - Prediction Logic & Display
 if submit_button:
-   
     input_data = {
         'Age': float(age),
         'Gender': gender,
@@ -82,23 +85,19 @@ if submit_button:
         'Last Interaction': float(last_interaction)
     }
     
-    # DataFrame 
     df = pd.DataFrame([input_data])
     
-    # --- PREPROCESSING (Same as your Test_func) ---
+    # --- PREPROCESSING ---
     num_cols = ['Age', 'Tenure', 'Usage Frequency', 'Support Calls', 'Payment Delay', 'Total Spend', 'Last Interaction']
     ordinal_cols = ['Subscription Type', 'Contract Length']
     onehot_cols = ['Gender']
     
-    # Scaling
     df[num_cols] = scaler.transform(df[num_cols])
     
-    # One-Hot Encoding
     ohe_df = pd.DataFrame(ohe.transform(df[onehot_cols]), columns=ohe.get_feature_names_out(onehot_cols), index=df.index)
     df = df.drop(columns=onehot_cols)
     df = pd.concat([df, ohe_df], axis=1)
     
-    # Ordinal Encoding
     df[ordinal_cols] = oe.transform(df[ordinal_cols])
     
     # --- PREDICTION ---
@@ -120,7 +119,6 @@ if submit_button:
             
     with col2:
         st.write("**Confidence Metrics:**")
-        # Progress Bar के रूप में प्रोबेबिलिटी दिखाना
         st.write(f"Stay Probability: {prediction_proba[0]*100:.1f}%")
         st.progress(float(prediction_proba[0]))
         
@@ -128,5 +126,4 @@ if submit_button:
         st.progress(float(prediction_proba[1]))
 
 else:
-    
     st.info("← Please enter the customer details in the sidebar and click on **Predict Churn** to see the analysis.")
