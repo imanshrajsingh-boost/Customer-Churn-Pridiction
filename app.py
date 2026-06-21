@@ -18,7 +18,20 @@ st.markdown("---")
 # 3. Artifacts Load Function (Caching  for fast app )
 @st.cache_resource
 def load_models():
-    model = joblib.load('Best_Model.pkl')
+    import urllib.request
+    import os
+    
+    
+    model_path = 'Best_Model.pkl'
+    if not os.path.exists(model_path):
+        with st.spinner("Downloading heavy model from Kaggle (364MB)... Please wait, this happens only once."):
+            # Kaggle notebook  direct output download link
+            url = "https://www.kaggle.com/api/v1/datasets/download/anshrajsingh7/churn-prediction/Best_Model.pkl"
+            # Alternately direct web URL:
+            url = "https://www.kaggle.com/code/anshrajsingh7/churn-prediction/output/download?file=Best_Model.pkl"
+            urllib.request.urlretrieve(url, model_path)
+
+    model = joblib.load(model_path)
     scaler = joblib.load('Scaler.pkl')
     ohe = joblib.load('One_Hot_Encoder.pkl')
     oe = joblib.load('Ordinal_Encoder.pkl')
