@@ -10,7 +10,7 @@ Live Kaggle Notebook: [Churn Prediction Portfolio](https://www.kaggle.com/code/a
 
 ## 🚀 Live Demo
 
-👉 [Click here to view the Web App](your-streamlit-link-goes-here)
+👉 [Click here to view the Web App][(your-streamlit-link-goes-here)](https://customer-churn-pridiction-by-me.streamlit.app/#customer-churn-prediction-app)
 
 ---
 
