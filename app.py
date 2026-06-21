@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import urllib.request
+import requests
 import os
-import ssl
 
 # 1. Page Configuration
 st.set_page_config(
@@ -18,23 +17,23 @@ st.title("🔮 Customer Churn Prediction App")
 st.markdown("This app predicts whether a customer is likely to churn (leave the business) based on their profile and usage patterns.")
 st.markdown("---")
 
-# 3. Artifacts Load Function with SSL Fix & Auto-Download
+# 3. Artifacts Load Function using 'requests' with SSL bypass
 @st.cache_resource
 def load_models():
     model_path = 'Best_Model.pkl'
     
     if not os.path.exists(model_path):
-        with st.spinner("Downloading full-accuracy model from Google Drive (~364MB)... Please wait, this happens only once."):
+        with st.spinner("Downloading full-accuracy model from secure cloud (~364MB)... Please wait, this takes 1-2 minutes."):
+            # Google Drive Direct Download URL
             url = "https://drive.google.com/uc?export=download&id=1EnlOxm9as7A7Yt1jte5wFbGiC1Ug8-xi"
             
-            # SSL Certificate Error (Error 60) ko bypass karne ke liye context create kiya
-            context = ssl._create_unverified_context()
+            # Requests use karke verfication=False lagaya taaki Error 60 bypass ho sake
+            response = requests.get(url, verify=False, stream=True)
             
-            opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context))
-            opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')]
-            urllib.request.install_opener(opener)
-            
-            urllib.request.urlretrieve(url, model_path)
+            with open(model_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
 
     model = joblib.load(model_path)
     scaler = joblib.load('Scaler.pkl')
